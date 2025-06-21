@@ -1,65 +1,101 @@
-#include "include/raylib.h"
-#include <stdio.h>
-
-int	checking_collision(float *posX1, float *posX2, float *posY)
-{
-	if (*posX1 <= 150 && *posX1 >= 50 && *posY > 250)
-		return (1);
-	else
-		return (0);
-}
+#include "include/dino.h"
 
 int	main(void)
 {
-	float	posX1;
-	int		bk;
-	int		up;
-	float	posX2;
-	float	posY;
-	float	posfst;
-	char	pos[50];
+	char score_final[50];
+	t_data	dino;
+	t_data	stick;
+	int dino_speed;
+	float	speed;
+	bool	jump;
+	bool	jumping;
+	bool	gameover;
 
-	posX1 = 700;
-	bk = 1;
-	up = 0;
-	posX2 = 100;
-	posY = 300;
-	posfst = posY;
-	InitWindow(800, 450, "basic window");
-	SetTargetFPS(144);
-	while (!WindowShouldClose())
+	dino.pos.x = 50.0;
+	dino.pos.y = 300.0;
+	stick.pos.x = SCREEN_WIDTH;
+	stick.pos.y = 300;
+	dino.score = 0;
+	speed = 500;
+	dino_speed = 200;
+	dino.height = 50;
+	dino.width = 20;
+	stick.height = 50;
+	stick.width = 20;
+	dino.new_score = dino.score;
+	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "dinaozaoro");
+	SetTargetFPS(60);
+	while (!WindowShouldClose() && !gameover)
 	{
-		posX1 -= GetFrameTime() * 400;
-		if (posX1 < 0)
-			posX1 = 800;
-		if (IsKeyPressed(KEY_UP) && posY >= posfst)
+		stick.pos.x -= GetFrameTime() * speed;
+		if (stick.pos.x < 0)
 		{
-			up = 1;
+			stick.pos.x = SCREEN_WIDTH;
+			dino.score += 100;
 		}
-		if (posY < 161 && up == 1)
-			up = 0;
-		if (posY > 161 && up == 1)
-			posY -= GetFrameTime() * 400;
-		else if (up == 0 && posY <= posfst)
+		if (IsKeyPressed(KEY_SPACE) && dino.pos.y == 300 && dino.pos.x <= 50)
 		{
-			posY += GetFrameTime() * 400;
+			jump = true;
+			jumping = true;
 		}
-		sprintf(pos, "posY : %.1f", posY);
-		DrawText(pos, 10, 5, 20, RAYWHITE);
-		BeginDrawing();
-		ClearBackground(BLACK);
-		DrawRectangle(posX1, 300, 50, 50, RED);
-		DrawRectangle(posX2, 300, 50, 50, BLUE);
-		
-		// if (IsKeyPressed(KEY_SPACE))
-		// {
+		if (jump && jumping)
+		{
+			dino.pos.y -= GetFrameTime() * dino_speed;
+			dino.pos.x += GetFrameTime() * 100;
+			if (dino.pos.y <= 220)
+			{
+				jumping = false;
+			}
+		}
+		if (jump && !jumping)
+		{
+			dino.pos.y += GetFrameTime() * dino_speed/2;
+			if (dino.pos.y >= 300)
+			{
+				dino.pos.y = 300;
+				jump = false;
+			}
+		}
+		if (!jump && !jumping)
+		{
+			if (dino.pos.x >= 50)
+			{
+				dino.pos.x -= GetFrameTime() * 200;
+			}
+		}
+		if (dino.pos.x < stick.pos.x + stick.width && dino.pos.x
+			+ dino.width > stick.pos.x && dino.pos.y < stick.pos.y
+			+ stick.height && dino.pos.y + dino.height > stick.pos.y)
+		{
+			gameover = true;
+		}
 
-		// }
-		DrawLine(0, 350, 800, 351, GREEN);
-		// if (checking_collision(&posX1, &posX2, &posY) > 0)
-			// break ;
+		if (dino.score >= (dino.new_score + 400))
+		{
+			speed += 200;
+			dino_speed += 30;
+			dino.new_score = dino.score;
+		}
+		
+		BeginDrawing();
+		show_position(&dino, &stick);
+		ClearBackground(BLACK);
+		DrawRectangle(dino.pos.x, dino.pos.y, dino.width, dino.height, BLUE);
+		DrawRectangle(stick.pos.x, stick.pos.y, stick.width, stick.height, RED);
+		DrawLine(0, 350, SCREEN_WIDTH, 351, GREEN);
 		EndDrawing();
 	}
+	while (!WindowShouldClose())
+	{
+		BeginDrawing();
+		ClearBackground(BLACK);
+		DrawText("GAME OVER",SCREEN_WIDTH/3, SCREEN_HEIGHT/2,  50, RED);
+		sprintf(score_final, "ton score final est de %d",dino.score);
+		DrawText(score_final, 600, 300, 20, RAYWHITE);
+
+		EndDrawing();
+		if (IsKeyPressed(KEY_ESCAPE))
+			break ;
+	}
 	CloseWindow();
-	return (0);
 }
