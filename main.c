@@ -10,6 +10,9 @@ int	main(void)
 	bool	jump;
 	bool	jumping;
 	bool	gameover;
+	Texture2D img[3];
+	Rectangle source;
+	Rectangle dest;
 
 	dino.pos.x = 50.0;
 	dino.pos.y = 300.0;
@@ -17,7 +20,7 @@ int	main(void)
 	stick.pos.y = 300;
 	dino.score = 0;
 	speed = 500;
-	dino_speed = 200;
+	dino_speed = 300;
 	dino.height = 50;
 	dino.width = 20;
 	stick.height = 50;
