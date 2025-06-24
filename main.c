@@ -2,25 +2,25 @@
 
 int	main(void)
 {
-	char score_final[50];
-	t_data	dino;
-	t_data	stick;
-	int dino_speed;
-	float	speed;
-	bool	jump;
-	bool	jumping;
-	bool	gameover;
-	Texture2D img[3];
-	Rectangle source;
-	Rectangle dest;
+	char		score_final[50];
+	t_data		dino;
+	t_data		stick;
+	int			dino_speed;
+	float		speed;
+	bool		jump;
+	bool		jumping;
+	bool		gameover;
+	Texture2D	img[3];
+	Rectangle	source;
+	Rectangle	dest;
 
 	dino.pos.x = 50.0;
-	dino.pos.y = 300.0;
+	dino.pos.y = 600.0;
 	stick.pos.x = SCREEN_WIDTH;
-	stick.pos.y = 300;
+	stick.pos.y = 600;
 	dino.score = 0;
 	speed = 500;
-	dino_speed = 300;
+	dino_speed = 600;
 	dino.height = 50;
 	dino.width = 20;
 	stick.height = 50;
@@ -36,7 +36,7 @@ int	main(void)
 			stick.pos.x = SCREEN_WIDTH;
 			dino.score += 100;
 		}
-		if (IsKeyPressed(KEY_SPACE) && dino.pos.y == 300 && dino.pos.x <= 50)
+		if (IsKeyPressed(KEY_SPACE) && dino.pos.y == 600 && dino.pos.x <= 50)
 		{
 			jump = true;
 			jumping = true;
@@ -45,17 +45,17 @@ int	main(void)
 		{
 			dino.pos.y -= GetFrameTime() * dino_speed;
 			dino.pos.x += GetFrameTime() * 100;
-			if (dino.pos.y <= 220)
+			if (dino.pos.y <= 500)
 			{
 				jumping = false;
 			}
 		}
 		if (jump && !jumping)
 		{
-			dino.pos.y += GetFrameTime() * dino_speed/2;
-			if (dino.pos.y >= 300)
+			dino.pos.y += GetFrameTime() * dino_speed / 2;
+			if (dino.pos.y >= 600)
 			{
-				dino.pos.y = 300;
+				dino.pos.y = 600;
 				jump = false;
 			}
 		}
@@ -72,30 +72,27 @@ int	main(void)
 		{
 			gameover = true;
 		}
-
 		if (dino.score >= (dino.new_score + 400))
 		{
 			speed += 200;
 			dino_speed += 30;
 			dino.new_score = dino.score;
 		}
-		
 		BeginDrawing();
 		show_position(&dino, &stick);
 		ClearBackground(BLACK);
 		DrawRectangle(dino.pos.x, dino.pos.y, dino.width, dino.height, BLUE);
 		DrawRectangle(stick.pos.x, stick.pos.y, stick.width, stick.height, RED);
-		DrawLine(0, 350, SCREEN_WIDTH, 351, GREEN);
+		DrawLine(0, 650, SCREEN_WIDTH, 650, GREEN);
 		EndDrawing();
 	}
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
 		ClearBackground(BLACK);
-		DrawText("GAME OVER",SCREEN_WIDTH/3, SCREEN_HEIGHT/2,  50, RED);
-		sprintf(score_final, "ton score final est de %d",dino.score);
-		DrawText(score_final, 600, 300, 20, RAYWHITE);
-
+		DrawText("GAME OVER", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 2, 50, RED);
+		sprintf(score_final, "ton score final est de %d", dino.score);
+		DrawText(score_final, 600, 600, 20, RAYWHITE);
 		EndDrawing();
 		if (IsKeyPressed(KEY_ESCAPE))
 			break ;
