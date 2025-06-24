@@ -1,104 +1,71 @@
-#include "include/dino.h"
+#include "raylib.h"
 
-int	main(void)
+#include "game.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+int main(void)
 {
-	char score_final[50];
-	t_data	dino;
-	t_data	stick;
-	int dino_speed;
-	float	speed;
-	bool	jump;
-	bool	jumping;
-	bool	gameover;
-	Texture2D img[3];
-	Rectangle source;
-	Rectangle dest;
+    GameInit();
+    InitWindow(800,500,"DINO_GAME");
+    SetTargetFPS(60);
+    InitAudioDevice();
 
-	dino.pos.x = 50.0;
-	dino.pos.y = 300.0;
-	stick.pos.x = SCREEN_WIDTH;
-	stick.pos.y = 300;
-	dino.score = 0;
-	speed = 500;
-	dino_speed = 300;
-	dino.height = 50;
-	dino.width = 20;
-	stick.height = 50;
-	stick.width = 20;
-	dino.new_score = dino.score;
-	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "dinaozaoro");
-	SetTargetFPS(60);
-	while (!WindowShouldClose() && !gameover)
-	{
-		stick.pos.x -= GetFrameTime() * speed;
-		if (stick.pos.x < 0)
-		{
-			stick.pos.x = SCREEN_WIDTH;
-			dino.score += 100;
-		}
-		if (IsKeyPressed(KEY_SPACE) && dino.pos.y == 300 && dino.pos.x <= 50)
-		{
-			jump = true;
-			jumping = true;
-		}
-		if (jump && jumping)
-		{
-			dino.pos.y -= GetFrameTime() * dino_speed;
-			dino.pos.x += GetFrameTime() * 100;
-			if (dino.pos.y <= 220)
-			{
-				jumping = false;
-			}
-		}
-		if (jump && !jumping)
-		{
-			dino.pos.y += GetFrameTime() * dino_speed/2;
-			if (dino.pos.y >= 300)
-			{
-				dino.pos.y = 300;
-				jump = false;
-			}
-		}
-		if (!jump && !jumping)
-		{
-			if (dino.pos.x >= 50)
-			{
-				dino.pos.x -= GetFrameTime() * 200;
-			}
-		}
-		if (dino.pos.x < stick.pos.x + stick.width && dino.pos.x
-			+ dino.width > stick.pos.x && dino.pos.y < stick.pos.y
-			+ stick.height && dino.pos.y + dino.height > stick.pos.y)
-		{
-			gameover = true;
-		}
+   
+    Texture2D player_main = LoadTexture("dino/dino.png");
+    Texture2D cactus_sprite = LoadTexture("cactus/pixel_art.png");
+    Music music = LoadMusicStream("music/jump.mp3");
 
-		if (dino.score >= (dino.new_score + 400))
-		{
-			speed += 200;
-			dino_speed += 30;
-			dino.new_score = dino.score;
-		}
-		
-		BeginDrawing();
-		show_position(&dino, &stick);
-		ClearBackground(BLACK);
-		DrawRectangle(dino.pos.x, dino.pos.y, dino.width, dino.height, BLUE);
-		DrawRectangle(stick.pos.x, stick.pos.y, stick.width, stick.height, RED);
-		DrawLine(0, 350, SCREEN_WIDTH, 351, GREEN);
-		EndDrawing();
-	}
-	while (!WindowShouldClose())
-	{
-		BeginDrawing();
-		ClearBackground(BLACK);
-		DrawText("GAME OVER",SCREEN_WIDTH/3, SCREEN_HEIGHT/2,  50, RED);
-		sprintf(score_final, "ton score final est de %d",dino.score);
-		DrawText(score_final, 600, 300, 20, RAYWHITE);
+    while (!WindowShouldClose()){
+        BeginDrawing();
+        UpdateMusicStream(music);
 
-		EndDrawing();
-		if (IsKeyPressed(KEY_ESCAPE))
-			break ;
-	}
-	CloseWindow();
+        ClearBackground(WHITE);
+        DrawRectangle(0, 400, GetScreenWidth(), 100, RED);
+        DrawTexture(player_main,Player.x,Player.y,WHITE); 
+        DrawTexture(cactus_sprite,cactus.x,380,WHITE);
+
+        // Gestion du saut du joueur
+        if (IsKeyDown(KEY_SPACE) && !Player.IsJumping){ 
+             PlayMusicStream(music);
+            Player.IsJumping = true;
+        }
+
+        if (Player.IsJumping == true){
+            if (Player.jumpcount >= -10){
+                Player.y -= (Player.jumpcount * abs(Player.jumpcount)) * .4;
+                Player.jumpcount -= 1;
+            }
+            else{
+                Player.jumpcount = 10;
+                Player.y = 380; // Retourne à la position y initiale
+                StopMusicStream(music);
+                Player.IsJumping = false;
+            }
+        }
+
+        
+        MoveCactus(); 
+
+        if (IfCactusCollision() == true){ 
+            ResetGameState(); 
+        }
+
+        if (cactus.x < 0){ // Si le cactus sort de l'écran par la gauche
+            ResetCactusState(); // Réinitialise le cactus et incrémente le score
+        }
+
+        DrawText(TextFormat("Score: %02i", Player.score), 50,50,20,GREEN);
+
+        EndDrawing();
+    }
+
+    UnloadTexture(player_main);
+    UnloadTexture(cactus_sprite);
+    UnloadMusicStream(music);
+    CloseAudioDevice();
+    CloseWindow();
+
+    return 0;
 }
