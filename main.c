@@ -1,24 +1,10 @@
 #include "include/raylib.h"
+#include "include/dino.h"
 #include <stdio.h>
 
 #define	WIDTH 800
 #define	HEIGHT 450
 
-int	checking_collision(float *posX1, float *posX2, float *posY)
-{
-	if (*posX1 <= 150 && *posX1 >= 50 && *posY > 250)
-		return (1);
-	else
-		return (0);
-}
-
-void	initialize(Rectangle *src, Rectangle *dst)
-{
-	src->height = 128;
-	src->width = 96;
-	dst->height = 128 * 0.5;
-	src->width = 96 * 0.5;
-}
 void	run(Texture2D *png, int curr, int speed)
 {
 	if (speed >= 7)
@@ -27,13 +13,12 @@ void	run(Texture2D *png, int curr, int speed)
 
 int main()
 {
-	float		posX1 = 700;
-	int			bk = 1;
-	int			up = 0;
-	float		posX2 = 100;
-	float		posY = 300;
-	float		posfst;
+	float		ennemi_pos = 700;
+	float		player_pos = 100;
+	float		player_pos_y = 300;
+	float		first_pos;
 	char		pos[50];
+    char score_final[50];
 	Texture2D	pj[3];
 	Texture2D	jmp[2];
 	Texture2D	ennemi[3];
@@ -42,7 +27,16 @@ int main()
 	int			curr;
 	int			curr2;
 	int			speed;
-	//Texture2D	ennemi;
+    int score;
+    bool jump;
+    bool jumping;
+    bool gameover = false;
+    int player_speed;
+    int player_score;
+    int speed_frame = 0;
+    player_speed = 300;
+
+
 	InitWindow(WIDTH, HEIGHT, "basic window");
 	SetTargetFPS(60);
 	pj[0] = LoadTexture("run/run0.png");
@@ -55,62 +49,110 @@ int main()
 	ennemi[2] = LoadTexture("zombie/run2.png");
 	attack = LoadTexture("attack.png");
 	bkground = LoadTexture("background.png");
-	speed = 0;
+	speed = 500;
 	curr = 0;
 	curr2 = 0;
-	Rectangle src = {0, 0, 96, 128};
-	Rectangle dst = {posX2, posY, 96 * 0.7, 128 * 0.7};
-	Rectangle	src2 = {0, 0, -96, 128};
-	Rectangle	dst2 = {posX1, 300, -96 *0.7, 128 * 0.7};
-	Rectangle	bk_src = {0, 0, 1024, 1024};
-	Rectangle	bk_dst = {0, 0, 800, 450};
-	posfst = dst.y;
-	while (!WindowShouldClose())
+    score = 0;
+    player_score = 0;
+
+	Rectangle src_player = {0, 0, 96, 128};
+	Rectangle dst_player = {player_pos, player_pos_y, 96 * 0.7, 128 * 0.7};
+	Rectangle	src_ennemi = {0, 0, -96, 128};
+	Rectangle	dst_ennemi = {ennemi_pos, 300, -96 *0.7, 128 * 0.7};
+	Rectangle	src_bg = {0, 0, 1024, 1024};
+	Rectangle	dst_bg = {0, 0, 800, 450};
+	first_pos = dst_player.y;
+	while (!WindowShouldClose() && gameover ==false)
 	{
-		speed ++;
-		if (speed >= 7)
+        speed_frame ++;
+		if (speed_frame >= 7)
 		{
 			curr = (curr + 1) % 3;
 			curr2 = (curr2 + 1) % 2;
-			speed = 0;
+			speed_frame = 0;
 		}
-		dst2.x -= GetFrameTime() * 400;
-		if (checking_collision(&dst2.x, &dst.x, &dst.y) > 0)
-			break;
-		if (dst2.x < 0)
-			dst2.x = 800;	
-		if (IsKeyPressed(KEY_UP) && dst.y >= posfst)
+		dst_ennemi.x -= GetFrameTime() * speed;
+		if (dst_ennemi.x < 0)
 		{
-			up = 1;
-			
+			dst_ennemi.x  = WIDTH;
+			score += 100;
 		}
-		if (dst.y < 161 && up == 1)
-			up = 0;
-		if (dst.y > 161 && up == 1)
-			dst.y -= GetFrameTime() * 400;
-		else if (up == 0 && dst.y <= posfst)
+		if (IsKeyPressed(KEY_SPACE) && dst_player.y  == 300 && dst_player.x  <= 50)
 		{
-			dst.y += GetFrameTime() * 400;
+			jump = true;
+			jumping = true;
 		}
-		sprintf(pos, "posY : %.1f", dst.y);
-		DrawText(pos, 10, 5, 20, BLACK);
+		if (jump && jumping)
+		{
+			dst_player.y  -= GetFrameTime() * player_speed;
+			dst_player.x  += GetFrameTime() * 100;
+			if (dst_player.y  <= 200)
+			{
+				jumping = false;
+			}
+		}
+		if (jump && !jumping)
+		{
+			dst_player.y  += GetFrameTime() * player_speed/2;
+			if (dst_player.y  >= 300)
+			{
+				dst_player.y  = 300;
+				jump = false;
+			}
+		}
+		if (!jump && !jumping)
+		{
+			if (dst_player.x  >= 50)
+			{
+				dst_player.x  -= GetFrameTime() * player_speed;
+			}
+		}
+		if ((dst_player.x + 50 > dst_ennemi.x) && (dst_player.y > dst_ennemi.y - 43))
+        {
+			gameover = true;
+		}
 
+		if (score >= (player_score + 400))
+		{
+			speed += 50;
+			player_speed += 40;
+			player_score = score;
+		}
 		BeginDrawing();
 			ClearBackground(RAYWHITE);
-				DrawTexturePro(bkground, bk_src, bk_dst, (Vector2){0, 0}, 0, WHITE);
+            
+            char scores[50];
+
+
+            sprintf(scores, "score : %d", score);
+            DrawText(scores, 10, 100, 50, BLACK);
+
+				DrawTexturePro(bkground, src_bg, dst_bg, (Vector2){0, 0}, 0, WHITE);
 				DrawLine(0, 400, WIDTH, 400, MAROON);
-				if (dst.y >= posfst)
-					DrawTexturePro(pj[curr], src, dst, (Vector2){0, 0}, 0, WHITE);
-				else if (up == 1)
-					DrawTexturePro(jmp[0], src, dst, (Vector2){0, 0}, 0, WHITE);
+				if (!jump && !jumping)
+					DrawTexturePro(pj[curr], src_player, dst_player, (Vector2){0, 0}, 0, WHITE);
+				else if (jump)
+					DrawTexturePro(jmp[0], src_player, dst_player, (Vector2){0, 0}, 0, WHITE);
 				else
-					DrawTexturePro(jmp[1], src, dst, (Vector2){0, 0}, 0, WHITE);
-				if (dst2.x <= 250 && dst2.x >= 50)
-					DrawTexturePro(attack, src2, dst2, (Vector2){0, 0}, 0, WHITE);
+					DrawTexturePro(jmp[1], src_player, dst_player, (Vector2){0, 0}, 0, WHITE);
+				if (dst_ennemi.x <= 250 && dst_ennemi.x >= 50)
+					DrawTexturePro(attack, src_ennemi, dst_ennemi, (Vector2){0, 0}, 0, WHITE);
 				else
-					DrawTexturePro(ennemi[curr2], src2, dst2, (Vector2){0, 0}, 0, WHITE);
+					DrawTexturePro(ennemi[curr2], src_ennemi, dst_ennemi, (Vector2){0, 0}, 0, WHITE);
 					
 			EndDrawing();
+	}
+    while (!WindowShouldClose())
+	{
+		BeginDrawing();
+		ClearBackground(BLACK);
+		DrawText("GAME OVER",WIDTH/3, HEIGHT/2,  50, RED);
+		sprintf(score_final, "ton score final est de %d",score);
+		DrawText(score_final, 600, 300, 20, RAYWHITE);
+
+		EndDrawing();
+		if (IsKeyPressed(KEY_ESCAPE))
+			break ;
 	}
 	UnloadTexture(pj[0]);
 	UnloadTexture(pj[1]);
