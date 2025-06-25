@@ -12,6 +12,8 @@ int main(void)
     while (!WindowShouldClose())
     {
         /* code */
+        draw_game();
+        update_game();
     }
 
     CloseWindow();

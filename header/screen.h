@@ -19,7 +19,7 @@ extern Legends player;
 extern Enemy enemy[3];
 extern int score;
 extern bool game_over;
-
+extern Texture2D player_texture;
 void init_game();
 
 #endif
